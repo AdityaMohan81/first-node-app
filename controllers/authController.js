@@ -12,7 +12,7 @@ const upload = multer();
  * Login user using email
  *
  * @swagger
- * /auth/login:
+ * /login:
  *   post:
  *     tags:
  *       - Auth
@@ -65,7 +65,7 @@ const login = asyncHandler(async (req, res) => {
 
 /**
  * @swagger
- * /auth/logout:
+ * /logout:
  *   post:
  *     tags:
  *       - Auth
@@ -106,7 +106,7 @@ const logout = (req, res) => {
  * Register a new user
  *
  * @swagger
- * /auth/register:
+ * /register:
  *   post:
  *     tags:
  *       - Auth
