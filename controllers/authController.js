@@ -81,7 +81,7 @@ const login = asyncHandler(async (req, res) => {
  *         description: Unauthenticated
  */
 const logout = (req, res) => {
-  console.log("🚀 ~ logout ~ req.header:", req.header)
+  // console.log("🚀 ~ logout ~ req.header:", req.header)
   if (req.user) {
     res.cookie('jwt', '', {
       httpOnly: true,

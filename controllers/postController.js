@@ -1,5 +1,7 @@
+import { CustomValidationError } from "../exceptions/customValidationError.js";
 import Post from "../models/post.js";
 import User from "../models/user.js";
+import GetPostRequest from "../requests/post/getPostRequest.js";
 // import { AddPostRequest } from "../requests/post/addPostRequest.js";
 import uploadFile from "../utils/uploadFile.js";
 
@@ -152,8 +154,8 @@ const listPosts = async (req, res) => {
  */
 const getPost = async (req, res) => {
   try {
-    const { id } = req.body;
-    const post = await Post.findById(id);
+    const validatedData = await new GetPostRequest(req.body).validate();
+    const post = await Post.findById(validatedData.id);
     if (post) {
       // const data = await OfferResponse.format(post)
       res.status(200).json({
@@ -168,11 +170,13 @@ const getPost = async (req, res) => {
         data: [],
       })
     }
-  } catch (err) {
+  } 
+  catch (error) {
+    console.log(error);
     res.status(422).json({
       status: false,
       message: 'Failed to get post.',
-      error: err.message
+      error: error.message
     })
   }
 };

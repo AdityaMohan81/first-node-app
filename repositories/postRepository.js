@@ -144,8 +144,8 @@ export default class PostRepository {
      * @param Array offerData
      * @return Post post
      */
-    async checkIdExists(offerData) {
-        const post = await Post.findOne({ _id: offerData.id })
+    async checkIdExists(postId) {
+        const post = await Post.findOne({ _id: postId })
         return post
     }
 
