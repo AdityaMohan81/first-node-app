@@ -39,8 +39,9 @@ const auth = async (req, res, next) => {
     }
 
     const token = authHeader.replace('Bearer ', '');
-    const decoded = jwt.verify(token, secret);
-    const user = await User.findOne({ _id: decoded._id });
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const user = await User.findOne({ _id: decoded.userId });
+    // console.log("🚀 ~ auth ~ user:", user)
 
     if (!user) {
       throw new Error();
@@ -61,17 +62,19 @@ const admin = (req, res, next) => {
 };
 
 const authenticateUser = async (req, res, next) => {
+  // console.log("🚀 ~ authenticateUser ~ req.headers:", req.headers)
   // Extract the Authorization header from the request
   const authHeader = req.headers["authorization"];
+  // console.log("🚀 ~ authenticateUser ~ authHeader:", authHeader)
   if (!authHeader) {
     // If no Authorization header is present, return Unauthorized status
-    return res.status(401).json({ message: "Unauthorized" });
+    return res.status(401).json({ message: "Unauthorizedd" });
   }
   // Extract the JWT token from the Authorization header
   const token = authHeader.split(" ")[1];
   if (!token) {
     // If no token is found, return Unauthorized status
-    return res.status(401).json({ message: "Unauthorized" });
+    return res.status(401).json({ message: "Unauthorizedd" });
   }
   try {
     //Get login details with token
@@ -83,12 +86,12 @@ const authenticateUser = async (req, res, next) => {
       const user = await authRepo.findById(userId);
       if (!user) {
         // If user not found, return Unauthorized status
-        return res.status(401).json({ message: "Unauthorized" });
+        return res.status(401).json({ message: "Unauthorizedd" });
       }
       if (!req.session) {
         req.session = {}; // Ensure req.session is initialized
       }
-      console.log('user in authMiddleware:', user);
+      // console.log('user in authMiddleware:', user);
       req.session.user = {
         id: user._id,
         name: user.name,
@@ -100,7 +103,7 @@ const authenticateUser = async (req, res, next) => {
       next();
     } else {
       // If decoding fails, return Unauthorized status
-      return res.status(401).json({ message: "Unauthorized" });
+      return res.status(401).json({ message: "Unauthorizedd" });
     }
   } catch (error) {
     console.log(error);
@@ -109,4 +112,34 @@ const authenticateUser = async (req, res, next) => {
   }
 };
 
-export { protect, auth, admin, authenticateUser };
+// const authRole = (role) => {
+//   return (req, res, next) => {
+//     const userRole = req.session.user.guard;
+//     console.log("🚀 ~ return ~ userRole:", userRole)
+//     if (userRole !== role) {
+//       return res.status(401).json({ message: "Unauthorized" })
+//     }
+//     next();
+//   }
+// }
+
+const authRole = (role) => {
+  return async (req, res, next) => {
+    const authHeader = req.header('Authorization');
+    if (!authHeader) {
+      return res.status(401).json({ error: 'Authorization header is missing' });
+    }
+    const token = authHeader.replace('Bearer ', '');
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    
+    const user = await authRepo.findById(decoded.userId);
+    const userRole = user.guard;
+    if (userRole !== role) {
+      return res.status(401).json({ message: "The user does not have permission to do this operation" })
+    }
+    req.user = user;
+    next();
+  }
+};
+
+export { protect, auth, admin, authenticateUser, authRole };
