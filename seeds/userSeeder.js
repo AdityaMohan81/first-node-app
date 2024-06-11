@@ -12,7 +12,7 @@ const userSeeder = async () => {
     password: "Admin123,.",
     guard: "admin",
     role_id: null, // Initializing role_id to null
-    // permissions: ["user-create", "user-update", "user-delete", "user-view", "post-create", "post-view", "post-delete", "post-update"],
+    // permissions: ["user-create", "user-view", "user-update", "user-delete", "post-create", "post-view", "post-update" "post-delete",],
   };
 
 

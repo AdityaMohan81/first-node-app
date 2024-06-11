@@ -4,6 +4,7 @@ import User from '../models/user.js';
 import asyncHandler from 'express-async-handler';
 import generateToken from '../utils/generateToken.js';
 import multer from 'multer';
+import AddUserRequest from '../requests/user/addUserRequest.js';
 
 const secret = process.env.JWT_SECRET;
 const upload = multer();
@@ -126,13 +127,16 @@ const logout = (req, res) => {
  *             properties:
  *               name:
  *                 type: string
- *                 description: User's name
+ *                 description: user name
  *               email:
  *                 type: string
- *                 description: User's email
+ *                 description: user email
  *               password:
  *                 type: string
- *                 description: User's password
+ *                 description: user password
+ *               confirm_password:
+ *                 type: string
+ *                 description: confirm user password
  *     responses:
  *       201:
  *         description: User registered successfully
@@ -142,34 +146,43 @@ const logout = (req, res) => {
  *         description: Internal Server Error
  */
 const registerUser = asyncHandler(async (req, res) => {
-  const { name, email, password } = req.body;
-  console.log("🚀 ~ registerUser ~ req.body:", req.body)
+  try {
+    const validatedData = await new AddUserRequest(req).validate();
+    const { name, email, password } = validatedData;
 
-  const userExists = await User.findOne({ email });
-  console.log("🚀 ~ registerUser ~ userExists:", userExists)
+    const userExists = await User.findOne({ email });
 
-  if (userExists) {
-    res.status(400);
-    throw new Error('User already exists');
-  }
+    if (userExists) {
+      res.status(422);
+      throw 'User already exists';
+    }
 
-  const user = await User.create({
-    name,
-    email,
-    password,
-  });
-
-  if (user) {
-    const token = generateToken(res, user._id);
-    res.status(201).json({
-      status: true,
-      message: 'User registered successfully.',
-      data: { user, token },
+    const user = await User.create({
+      name,
+      email,
+      password,
     });
-  } else {
-    res.status(400);
-    throw new Error('Invalid user data');
+
+    if (user) {
+      const token = generateToken(res, user._id);
+      res.status(201).json({
+        status: true,
+        message: 'User registered successfully.',
+        data: { user, token },
+      });
+    } else {
+      res.status(422);
+      throw 'Invalid user data';
+    }
+  } catch (error) {
+    console.log("🚀 ~ registerUser ~ error:", error)
+    res.status(422).json({
+      status: false,
+      message: 'Failed to register user',
+      error: error
+    });
   }
+
 });
 
 export { login, logout, registerUser };
